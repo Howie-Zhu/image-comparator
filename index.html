@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片对比工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .image-upload {
+            margin-bottom: 20px;
+        }
+        .image-upload input {
+            margin: 10px;
+        }
+        canvas {
+            display: none; /* 隐藏 Canvas */
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>图片对比工具</h1>
+        <p>上传两张图片，程序会自动对比它们是否相同。</p >
+
+        <div class="image-upload">
+            <label for="image1">图片 1：</label>
+            <input type="file" id="image1" accept="image/*">
+            <br>
+            <label for="image2">图片 2：</label>
+            <input type="file" id="image2" accept="image/*">
+        </div>
+
+        <button onclick="compareImages()">开始对比</button>
+
+        <div class="result" id="result"></div>
+
+        <!-- Canvas 用于处理图片 -->
+        <canvas id="canvas1"></canvas>
+        <canvas id="canvas2"></canvas>
+    </div>
+
+    <script>
+        function compareImages() {
+            const image1 = document.getElementById('image1').files[0];
+            const image2 = document.getElementById('image2').files[0];
+
+            if (!image1 || !image2) {
+                alert("请上传两张图片！");
+                return;
+            }
+
+            const canvas1 = document.getElementById('canvas1');
+            const canvas2 = document.getElementById('canvas2');
+            const ctx1 = canvas1.getContext('2d');
+            const ctx2 = canvas2.getContext('2d');
+
+            const img1 = new Image();
+            const img2 = new Image();
+
+            img1.onload = function () {
+                canvas1.width = img1.width;
+                canvas1.height = img1.height;
+                ctx1.drawImage(img1, 0, 0);
+
+                img2.onload = function () {
+                    canvas2.width = img2.width;
+                    canvas2.height = img2.height;
+                    ctx2.drawImage(img2, 0, 0);
+
+                    // 检查图片尺寸是否相同
+                    if (img1.width !== img2.width || img1.height !== img2.height) {
+                        document.getElementById('result').innerText = "图片尺寸不同，无法对比！";
+                        return;
+                    }
+
+                    // 获取图片像素数据
+                    const imageData1 = ctx1.getImageData(0, 0, img1.width, img1.height);
+                    const imageData2 = ctx2.getImageData(0, 0, img2.width, img2.height);
+                    const data1 = imageData1.data;
+                    const data2 = imageData2.data;
+
+                    let isSame = true;
+
+                    // 对比每个像素
+                    for (let i = 0; i < data1.length; i += 4) {
+                        if (data1[i] !== data2[i] || data1[i + 1] !== data2[i + 1] || data1[i + 2] !== data2[i + 2] || data1[i + 3] !== data2[i + 3]) {
+                            isSame = false;
+                            break;
+                        }
+                    }
+
+                    // 显示结果
+                    if (isSame) {
+                        document.getElementById('result').innerText = "两张图片完全相同！";
+                    } else {
+                        document.getElementById('result').innerText = "两张图片不同！";
+                    }
+                };
+
+                img2.src = URL.createObjectURL(image2);
+            };
+
+            img1.src = URL.createObjectURL(image1);
+        }
+    </script>
+</body>
+</html>
